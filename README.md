@@ -1,21 +1,35 @@
 # CodeAlpha Cloud Projects
 
-Hey there! This repository holds my cloud computing internship submissions. 
+My clean submissions for the cloud computing internship tasks. Built and managed entirely on-cloud.
 
 ## Task 1: Log Redundancy Cleaner
-A lightweight Java console app that parses network log streams and filters out redundant tracking data in real-time. It mimics how cloud monitoring tools save storage costs by deduplicating logs before writing them to disk.
+A lightweight Java console utility that cleans high-frequency network log streams by destroying redundant tracking rows on the fly before they hit database physical storage layers.
 
-### How it works:
-* Uses a `HashSet` to ingest incoming log strings.
-* Leverages $O(1)$ hashing checks to instantly drop duplicate requests without scanning the whole dataset sequentially.
-* Keeps memory overhead low for scaling up to massive telemetry logs.
+### Implementation:
+* Leverages a structural `HashSet` for tracking data packets.
+* Performs lightning-fast execution checks at $O(1)$ constant time complexity.
 
-### Sample Telemetry Output:
---- Cloud Data Redundancy Removal System ---
-[REDUNDANT PACKET BLOCKED]: 66.249.65.107 - - [11/Jul/2026:10:00:01] "GET /index.html HTTP/1.1" 200
-[REDUNDANT PACKET BLOCKED]: 192.168.1.50 - - [11/Jul/2026:10:00:02] "POST /login HTTP/1.1" 200
+---
 
---- Cloud Deduplication Metrics Summary ---
-Total Network Streams Processed : 5
-Redundant Storage Logs Destroyed: 2
-Clean Unique Database Logs Saved: 3
+## Task 2: Cloud Distributed Rate Limiter
+A token-bucket simulation system designed for API Gateways to throttle spam traffic, control cloud resource usage, and protect server architectures from crashing during intense request spikes.
+
+### Implementation:
+* Employs token-bucket regeneration algorithms using high-precision tracking (`System.nanoTime()`).
+* Implements synchronization logic (`synchronized`) to ensure thread safety across distributed worker paths.
+
+### Simulated Network Profile Output:
+```text
+--- Cloud API Gateway Rate Limiter Active ---
+
+[SIMULATION] Processing rapid burst of 5 requests...
+  -> [200 OK] Request processed for IP: 192.168.1.1
+  -> [200 OK] Request processed for IP: 192.168.1.2
+  -> [200 OK] Request processed for IP: 192.168.1.3
+  -> [429 TOO MANY REQUESTS] Dropped packet from IP: 192.168.1.4
+  -> [429 TOO MANY REQUESTS] Dropped packet from IP: 192.168.1.5
+
+[SIMULATION] Sleeping for 1.5 seconds to allow token regeneration...
+
+[SIMULATION] New request arrives after window cool-down:
+  -> [200 OK] Request processed for IP: 192.168.1.6
