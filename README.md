@@ -1,38 +1,20 @@
-# CodeAlpha Cloud Systems Optimization Infrastructure
+# CodeAlpha Cloud Projects
 
-Production-ready backend utilities simulating highly scalable, reliable distributed systems architectures.
+Code submissions for my cloud computing internship tasks. Built and managed directly on GitHub.
 
-## 🛠️ Core Engine Portfolios
+## Project Modules
 
-### Task 1: Stream Deduplication Engine (`LogRedundancyCleaner.java`)
-An algorithmic pipeline simulating real-time metric filtering engines. It intercepts system logs at high frequencies and eliminates redundant rows dynamically before they corrupt physical persistent clusters.
-* **Architecture:** In-memory tracking array evaluated via standard `HashSet` mechanisms.
-* **Performance:** High-velocity lookup running on $O(1)$ time complexity limits.
+### 1. Log Redundancy Cleaner (`LogRedundancyCleaner.java`)
+A basic pipeline tool that catches duplicate network log lines on the fly before they eat up physical server storage. 
+* **Logic:** Uses a `HashSet` to process log packets at $O(1)$ constant time.
+* **Edge Cases handled:** Drops null entries and completely blank or corrupted string inputs automatically using `.trim()`.
 
-### Task 2: Elastic API Gateway Rate Limiter (`CloudRateLimiter.java`)
-A thread-safe infrastructure mitigation script mimicking perimeter web firewall traffic management profiles.
-* **Architecture:** Token-Bucket algorithm processing high-precision timestamps via `System.nanoTime()`.
-* **Mitigation:** Drops spam payloads gracefully using automated `429 Too Many Requests` responses.
+### 2. Cloud Gateway Rate Limiter (`CloudRateLimiter.java`)
+A lightweight, thread-safe token bucket implementation to throttle massive traffic spikes and protect server resources.
+* **Logic:** Calculates token refills dynamically based on high-precision system time (`System.nanoTime()`).
+* **Handling:** Drops excessive traffic by returning a boolean state indicating a throttle breach (`HTTP 429`).
 
-### Task 3: High-Availability Distributed Storage (`DistributedCache.java`)
-A memory storage cache grid mirroring clustering synchronization topologies found in tools like Redis or Apache Cassandra.
-* **Architecture:** Multi-Node configuration featuring transactional routing topologies.
-* **Fault Tolerance:** Active-Passive Replication architecture ensuring direct data consistency across distributed endpoints.
-
----
-
-## 🚀 Simulated Operational Logs
-
-```text
---- Booting Distributed Cloud Cache Clusters ---
-
-[TRAFFIC] Client issues a heavy write request to primary node...
-[us-east-primary -> Master Write] Saved: user_session_9982 = ACTIVE_AUTH_TOKEN_XYZ
-  -> [us-west-replica -> Replica Sync] Data synced successfully.
-  -> [eu-central-replica -> Replica Sync] Data synced successfully.
-
-[VERIFICATION] Querying backup follower instances directly to confirm data integrity:
-  Query us-west-replica   : ACTIVE_AUTH_TOKEN_XYZ
-  Query eu-central-replica : ACTIVE_AUTH_TOKEN_XYZ
-
---- Distributed Data Persistence Test Successful ---
+### 3. Distributed Key-Value Memory Cache (`DistributedCache.java`)
+A multi-node cluster data store simulation mimicking primary-replica replication models like Redis.
+* **Logic:** Automatically forwards local data mutations to peered follower nodes.
+* **Verification:** Confirms active cluster sync by reading straight from backup nodes.
