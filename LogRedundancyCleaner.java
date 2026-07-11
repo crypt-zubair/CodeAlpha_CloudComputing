@@ -1,38 +1,61 @@
 import java.util.HashSet;
+import java.util.Scanner;
 import java.util.Set;
 
 public class LogRedundancyCleaner {
-    public static void main(String[] args) {
-        String[] rawStream = {
-            "66.249.65.107 - - [11/Jul/2026:10:00:01] \"GET /index.html HTTP/1.1\" 200",
-            "192.168.1.50 - - [11/Jul/2026:10:00:02] \"POST /login HTTP/1.1\" 200",
-            "66.249.65.107 - - [11/Jul/2026:10:00:01] \"GET /index.html HTTP/1.1\" 200", 
-            "  ", // Corrupted line edge-case
-            "192.168.1.50 - - [11/Jul/2026:10:00:02] \"POST /login HTTP/1.1\" 200",    
-            "185.220.101.5 - - [11/Jul/2026:10:00:05] \"GET /api/data HTTP/1.1\" 401"
-        };
+    private final Set<String> savedLogs = new HashSet<>();
 
-        Set<String> seenLogs = new HashSet<>();
-        int linesProcessed = 0;
-        int duplicatesDropped = 0;
-
-        System.out.println(">>> Initializing log deduplication stream listener...");
-
-        for (String log : rawStream) {
-            if (log == null || log.trim().isEmpty()) {
-                continue; // Skip malformed or empty packets
-            }
-            
-            linesProcessed++;
-            if (!seenLogs.add(log.trim())) {
-                System.err.println("[DUP_BLOCKED] -> " + log.trim());
-                duplicatesDropped++;
-            }
+    public void checkLog(String logLine) {
+        if (logLine == null || logLine.trim().isEmpty()) {
+            return;
         }
 
-        System.out.println("\n--- Pipeline Job Run Summary ---");
-        System.out.printf("Total Evaluated : %d\n", linesProcessed);
-        System.out.printf("Dropped (Dups)  : %d\n", duplicatesDropped);
-        System.out.printf("Committed Cache : %d\n", seenLogs.size());
+        String cleanLine = logLine.trim();
+
+        if (cleanLine.toLowerCase().contains("free_tier") || cleanLine.toLowerCase().contains("basic_user")) {
+            System.out.println("\n[🔒 FEATURE LOCKED]");
+            System.out.println("This advanced log sorting feature is only available for premium accounts.");
+            System.out.println("To unlock full access, view our plans here:");
+            System.out.println("👉 https://crypt-zubair.github.io/CodeAlpha_CloudComputing/billing_portal.html\n");
+            System.out.println("⚠️ [PROTOTYPE NOTICE]: This is a fake link for a school project. Do not pay real money.");
+            return;
+        }
+
+        if (savedLogs.contains(cleanLine)) {
+            System.out.println("[DUPLICATE BLOCKED] -> This exact line was already processed.");
+        } else {
+            savedLogs.add(cleanLine);
+            System.out.println("[SAVED NEW LINE]    -> This line is unique.");
+        }
+    }
+
+    public static void main(String[] args) {
+        LogRedundancyCleaner cleaner = new LogRedundancyCleaner();
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("======================================================");
+        System.out.println("===       CLOUD LOG CLEANER PROTOTYPE LIVE         ===");
+        System.out.println("======================================================");
+        System.out.println("📝 HOW TO TEST THIS PROGRAM:");
+        System.out.println("1. Type any text (e.g., 'error404') -> It will be SAVED.");
+        System.out.println("2. Type the same text again         -> It will be BLOCKED.");
+        System.out.println("3. Type 'free_tier'                 -> It will trigger the PREMIUM LOCK & WARNING.");
+        System.out.println("4. Type 'exit'                      -> It will stop the program cleanly.");
+        System.out.println("------------------------------------------------------");
+
+        while (true) {
+            System.out.print("\nEnter Log Input: ");
+            if (!scanner.hasNextLine()) break;
+            String input = scanner.nextLine();
+
+            if (input.trim().equalsIgnoreCase("exit")) {
+                System.out.println("Stopping the log program. Goodbye!");
+                break;
+            }
+
+            cleaner.checkLog(input);
+        }
+
+        scanner.close();
     }
 }
