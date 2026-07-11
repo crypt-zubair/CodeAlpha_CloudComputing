@@ -1,35 +1,38 @@
-# CodeAlpha Cloud Projects
+# CodeAlpha Cloud Systems Optimization Infrastructure
 
-My clean submissions for the cloud computing internship tasks. Built and managed entirely on-cloud.
+Production-ready backend utilities simulating highly scalable, reliable distributed systems architectures.
 
-## Task 1: Log Redundancy Cleaner
-A lightweight Java console utility that cleans high-frequency network log streams by destroying redundant tracking rows on the fly before they hit database physical storage layers.
+## 🛠️ Core Engine Portfolios
 
-### Implementation:
-* Leverages a structural `HashSet` for tracking data packets.
-* Performs lightning-fast execution checks at $O(1)$ constant time complexity.
+### Task 1: Stream Deduplication Engine (`LogRedundancyCleaner.java`)
+An algorithmic pipeline simulating real-time metric filtering engines. It intercepts system logs at high frequencies and eliminates redundant rows dynamically before they corrupt physical persistent clusters.
+* **Architecture:** In-memory tracking array evaluated via standard `HashSet` mechanisms.
+* **Performance:** High-velocity lookup running on $O(1)$ time complexity limits.
+
+### Task 2: Elastic API Gateway Rate Limiter (`CloudRateLimiter.java`)
+A thread-safe infrastructure mitigation script mimicking perimeter web firewall traffic management profiles.
+* **Architecture:** Token-Bucket algorithm processing high-precision timestamps via `System.nanoTime()`.
+* **Mitigation:** Drops spam payloads gracefully using automated `429 Too Many Requests` responses.
+
+### Task 3: High-Availability Distributed Storage (`DistributedCache.java`)
+A memory storage cache grid mirroring clustering synchronization topologies found in tools like Redis or Apache Cassandra.
+* **Architecture:** Multi-Node configuration featuring transactional routing topologies.
+* **Fault Tolerance:** Active-Passive Replication architecture ensuring direct data consistency across distributed endpoints.
 
 ---
 
-## Task 2: Cloud Distributed Rate Limiter
-A token-bucket simulation system designed for API Gateways to throttle spam traffic, control cloud resource usage, and protect server architectures from crashing during intense request spikes.
+## 🚀 Simulated Operational Logs
 
-### Implementation:
-* Employs token-bucket regeneration algorithms using high-precision tracking (`System.nanoTime()`).
-* Implements synchronization logic (`synchronized`) to ensure thread safety across distributed worker paths.
-
-### Simulated Network Profile Output:
 ```text
---- Cloud API Gateway Rate Limiter Active ---
+--- Booting Distributed Cloud Cache Clusters ---
 
-[SIMULATION] Processing rapid burst of 5 requests...
-  -> [200 OK] Request processed for IP: 192.168.1.1
-  -> [200 OK] Request processed for IP: 192.168.1.2
-  -> [200 OK] Request processed for IP: 192.168.1.3
-  -> [429 TOO MANY REQUESTS] Dropped packet from IP: 192.168.1.4
-  -> [429 TOO MANY REQUESTS] Dropped packet from IP: 192.168.1.5
+[TRAFFIC] Client issues a heavy write request to primary node...
+[us-east-primary -> Master Write] Saved: user_session_9982 = ACTIVE_AUTH_TOKEN_XYZ
+  -> [us-west-replica -> Replica Sync] Data synced successfully.
+  -> [eu-central-replica -> Replica Sync] Data synced successfully.
 
-[SIMULATION] Sleeping for 1.5 seconds to allow token regeneration...
+[VERIFICATION] Querying backup follower instances directly to confirm data integrity:
+  Query us-west-replica   : ACTIVE_AUTH_TOKEN_XYZ
+  Query eu-central-replica : ACTIVE_AUTH_TOKEN_XYZ
 
-[SIMULATION] New request arrives after window cool-down:
-  -> [200 OK] Request processed for IP: 192.168.1.6
+--- Distributed Data Persistence Test Successful ---
