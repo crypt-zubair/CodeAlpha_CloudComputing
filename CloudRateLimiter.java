@@ -1,38 +1,48 @@
-import java.util.HashSet;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
-public class LogRedundancyCleaner {
-    public static void main(String[] args) {
-        String[] rawStream = {
-            "66.249.65.107 - - [11/Jul/2026:10:00:01] \"GET /index.html HTTP/1.1\" 200",
-            "192.168.1.50 - - [11/Jul/2026:10:00:02] \"POST /login HTTP/1.1\" 200",
-            "66.249.65.107 - - [11/Jul/2026:10:00:01] \"GET /index.html HTTP/1.1\" 200", 
-            "  ", // Corrupted line edge-case
-            "192.168.1.50 - - [11/Jul/2026:10:00:02] \"POST /login HTTP/1.1\" 200",    
-            "185.220.101.5 - - [11/Jul/2026:10:00:05] \"GET /api/data HTTP/1.1\" 401"
-        };
+public class CloudRateLimiter {
+    private final int limit;
+    private int tokens;
+    private long lastCheck;
+    private final long refillDelta;
 
-        Set<String> seenLogs = new HashSet<>();
-        int linesProcessed = 0;
-        int duplicatesDropped = 0;
+    public CloudRateLimiter(int limit, int ratePerSec) {
+        this.limit = limit;
+        this.tokens = limit;
+        this.lastCheck = System.nanoTime();
+        this.refillDelta = TimeUnit.SECONDS.toNanos(1) / ratePerSec;
+    }
 
-        System.out.println(">>> Initializing log deduplication stream listener...");
-
-        for (String log : rawStream) {
-            if (log == null || log.trim().isEmpty()) {
-                continue; // Skip malformed or empty packets
-            }
-            
-            linesProcessed++;
-            if (!seenLogs.add(log.trim())) {
-                System.err.println("[DUP_BLOCKED] -> " + log.trim());
-                duplicatesDropped++;
+    public synchronized boolean throttle() {
+        long currentNanos = System.nanoTime();
+        long diff = currentNanos - lastCheck;
+        
+        if (diff >= refillDelta) {
+            int fillAmount = (int) (diff / refillDelta);
+            if (fillAmount > 0) {
+                this.tokens = Math.min(limit, this.tokens + fillAmount);
+                this.lastCheck = currentNanos;
             }
         }
 
-        System.out.println("\n--- Pipeline Job Run Summary ---");
-        System.out.printf("Total Evaluated : %d\n", linesProcessed);
-        System.out.printf("Dropped (Dups)  : %d\n", duplicatesDropped);
-        System.out.printf("Committed Cache : %d\n", seenLogs.size());
+        if (this.tokens > 0) {
+            this.tokens--;
+            return false; // Allowed, do not throttle
+        }
+        return true; // Throttle request
+    }
+
+    public static void main(String[] args) throws Exception {
+        CloudRateLimiter gatewayGuard = new CloudRateLimiter(3, 1);
+        String[] clientIps = {"192.168.1.1", "192.168.1.2", "192.168.1.3", "192.168.1.4"};
+
+        System.out.println("Evaluating gateway cluster constraints...");
+        for (String ip : clientIps) {
+            if (gatewayGuard.throttle()) {
+                System.out.println("IP " + ip + " rejected -> HTTP 429");
+            } else {
+                System.out.println("IP " + ip + " accepted -> HTTP 200");
+            }
+        }
     }
 }
