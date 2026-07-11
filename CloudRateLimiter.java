@@ -1,66 +1,38 @@
-import java.util.concurrent.TimeUnit;
+import java.util.HashSet;
+import java.util.Set;
 
-public class CloudRateLimiter {
-    private final int maxCapacity;
-    private int currentTokens;
-    private long lastRefillTime;
-    private final long refillIntervalNanos;
+public class LogRedundancyCleaner {
+    public static void main(String[] args) {
+        String[] rawStream = {
+            "66.249.65.107 - - [11/Jul/2026:10:00:01] \"GET /index.html HTTP/1.1\" 200",
+            "192.168.1.50 - - [11/Jul/2026:10:00:02] \"POST /login HTTP/1.1\" 200",
+            "66.249.65.107 - - [11/Jul/2026:10:00:01] \"GET /index.html HTTP/1.1\" 200", 
+            "  ", // Corrupted line edge-case
+            "192.168.1.50 - - [11/Jul/2026:10:00:02] \"POST /login HTTP/1.1\" 200",    
+            "185.220.101.5 - - [11/Jul/2026:10:00:05] \"GET /api/data HTTP/1.1\" 401"
+        };
 
-    public CloudRateLimiter(int maxCapacity, int tokensPerSecond) {
-        this.maxCapacity = maxCapacity;
-        this.currentTokens = maxCapacity;
-        this.lastRefillTime = System.nanoTime();
-        this.refillIntervalNanos = TimeUnit.SECONDS.toNanos(1) / tokensPerSecond;
-    }
+        Set<String> seenLogs = new HashSet<>();
+        int linesProcessed = 0;
+        int duplicatesDropped = 0;
 
-    // Core logic to check and consume tokens atomically
-    public synchronized boolean allowRequest() {
-        refillTokens();
-        if (currentTokens > 0) {
-            currentTokens--;
-            return true; // Request Allowed
-        }
-        return false; // Request Throttled (429 Too Many Requests)
-    }
+        System.out.println(">>> Initializing log deduplication stream listener...");
 
-    private void refillTokens() {
-        long now = System.nanoTime();
-        long elapsed = now - lastRefillTime;
-        
-        if (elapsed >= refillIntervalNanos) {
-            int tokensToAdd = (int) (elapsed / refillIntervalNanos);
-            if (tokensToAdd > 0) {
-                currentTokens = Math.min(maxCapacity, currentTokens + tokensToAdd);
-                lastRefillTime = now;
+        for (String log : rawStream) {
+            if (log == null || log.trim().isEmpty()) {
+                continue; // Skip malformed or empty packets
             }
-        }
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-        System.out.println("--- Cloud API Gateway Rate Limiter Active ---");
-        CloudRateLimiter limiter = new CloudRateLimiter(3, 1); // Max 3 tokens, refills 1 per second
-
-        // Simulate a burst spike of incoming client requests
-        String[] incomingIPs = {"192.168.1.1", "192.168.1.2", "192.168.1.3", "192.168.1.4", "192.168.1.5"};
-
-        System.out.println("\n[SIMULATION] Processing rapid burst of 5 requests...");
-        for (String ip : incomingIPs) {
-            if (limiter.allowRequest()) {
-                System.out.println("  -> [200 OK] Request processed for IP: " + ip);
-            } else {
-                System.out.println("  -> [429 TOO MANY REQUESTS] Dropped packet from IP: " + ip);
+            
+            linesProcessed++;
+            if (!seenLogs.add(log.trim())) {
+                System.err.println("[DUP_BLOCKED] -> " + log.trim());
+                duplicatesDropped++;
             }
         }
 
-        // Wait 1.5 seconds to simulate an idle window for a bucket token refill
-        System.out.println("\n[SIMULATION] Sleeping for 1.5 seconds to allow token regeneration...");
-        Thread.sleep(1500);
-
-        System.out.println("\n[SIMULATION] New request arrives after window cool-down:");
-        if (limiter.allowRequest()) {
-            System.out.println("  -> [200 OK] Request processed for IP: 192.168.1.6");
-        } else {
-            System.out.println("  -> [429] Throttled.");
-        }
+        System.out.println("\n--- Pipeline Job Run Summary ---");
+        System.out.printf("Total Evaluated : %d\n", linesProcessed);
+        System.out.printf("Dropped (Dups)  : %d\n", duplicatesDropped);
+        System.out.printf("Committed Cache : %d\n", seenLogs.size());
     }
 }
